@@ -1,0 +1,75 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/engram-core",
+    "crates/engram-store",
+    "crates/engram-embed",
+    "crates/engram-fts",
+    "crates/engram-vector",
+    "crates/engram-graph",
+    "crates/engram-temporal",
+    "crates/engram-query",
+    "crates/engram-extract",
+    "crates/engram-cli",
+]
+
+[workspace.dependencies]
+# async
+tokio = { version = "1", features = ["full"] }
+# serde
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# error handling
+anyhow = "1"
+thiserror = "1"
+# ids
+ulid = "1"
+uuid = { version = "1", features = ["v4"] }
+# time
+chrono = { version = "0.4", features = ["serde"] }
+# logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+# http
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+# db -- sled: pure Rust embedded KV, zero C++ deps, fast compile
+sled = "0.34"
+# vector
+hnsw_rs = "0.3"
+# text search
+tantivy = "0.22"
+# graph
+petgraph = "0.6"
+# hashing
+sha2 = "0.10"
+hex = "0.4"
+# bloom filter
+bloomfilter = "1"
+# compression
+zstd = "0.13"
+# cli
+clap = { version = "4", features = ["derive"] }
+# itertools
+itertools = "0.13"
+# channels
+flume = "0.11"
+# parking lot
+parking_lot = "0.12"
+# rayon
+rayon = "1"
+# dashmap
+dashmap = "6"
+# ordered float
+ordered-float = { version = "4", features = ["serde"] }
+# bytes
+bytes = "1"
+# base64
+base64 = "0.22"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+
+[profile.dev]
+opt-level = 1

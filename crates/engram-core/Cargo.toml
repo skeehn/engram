@@ -1,0 +1,16 @@
+[package]
+name = "engram-core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+ulid = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+ordered-float = { workspace = true }
+sha2 = { workspace = true }
+hex = { workspace = true }
+bytes = { workspace = true }

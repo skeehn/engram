@@ -1,0 +1,15 @@
+[package]
+name = "engram-extract"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+engram-core = { path = "../engram-core" }
+engram-query = { path = "../engram-query" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+flume = { workspace = true }

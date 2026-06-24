@@ -1,0 +1,29 @@
+[package]
+name = "engram-query"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+engram-core = { path = "../engram-core" }
+engram-store = { path = "../engram-store" }
+engram-embed = { path = "../engram-embed" }
+engram-fts = { path = "../engram-fts" }
+engram-vector = { path = "../engram-vector" }
+engram-graph = { path = "../engram-graph" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+itertools = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3"
+tokio = { workspace = true }
+engram-embed = { path = "../engram-embed" }
+engram-fts = { path = "../engram-fts" }
+engram-vector = { path = "../engram-vector" }
+engram-store = { path = "../engram-store" }
+engram-core = { path = "../engram-core" }

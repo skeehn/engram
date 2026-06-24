@@ -1,0 +1,27 @@
+[package]
+name = "engram-cli"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "engram"
+path = "src/main.rs"
+
+[dependencies]
+engram-core = { path = "../engram-core" }
+engram-store = { path = "../engram-store" }
+engram-embed = { path = "../engram-embed" }
+engram-fts = { path = "../engram-fts" }
+engram-vector = { path = "../engram-vector" }
+engram-graph = { path = "../engram-graph" }
+engram-query = { path = "../engram-query" }
+engram-extract = { path = "../engram-extract" }
+engram-temporal = { path = "../engram-temporal" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+anyhow = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+clap = { workspace = true }
