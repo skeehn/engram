@@ -1,24 +1,18 @@
-use std::sync::Arc;
 use engram_core::types::{Node, NodeType};
-use engram_embed::{EmbedClient, types::EmbedConfig};
+use engram_embed::{types::EmbedConfig, EmbedClient};
 use engram_fts::FtsIndex;
 use engram_query::QueryEngine;
 use engram_store::EngramStore;
 use engram_vector::VectorIndex;
+use std::sync::Arc;
 use tempfile::TempDir;
 
 /// Build a QueryEngine with no Jina API key (no-embed path).
 fn build_engine(dir: &TempDir) -> QueryEngine {
-    let store = Arc::new(
-        EngramStore::open(dir.path().join("store")).expect("store")
-    );
-    let fts = Arc::new(
-        FtsIndex::open(dir.path().join("fts")).expect("fts")
-    );
+    let store = Arc::new(EngramStore::open(dir.path().join("store")).expect("store"));
+    let fts = Arc::new(FtsIndex::open(dir.path().join("fts")).expect("fts"));
     // 1024-dim matches the default embed config dimensions
-    let vector = Arc::new(
-        VectorIndex::new(1024, dir.path().join("vectors.json")).expect("vector")
-    );
+    let vector = Arc::new(VectorIndex::new(1024, dir.path().join("vectors.json")).expect("vector"));
     // No API key -- embed will fail gracefully, falling through the no-embed path
     let embed_config = EmbedConfig {
         jina_api_key: None,
@@ -63,7 +57,10 @@ async fn test_search_text_returns_matching_nodes() {
 
     // Search for "photosynthesis" -- should return node 1
     // No API key means vector search skipped, keyword search still runs
-    let results = engine.search_text("photosynthesis", 5).await.expect("search");
+    let results = engine
+        .search_text("photosynthesis", 5)
+        .await
+        .expect("search");
     // With no embed key, only FTS runs. Results may be empty if query engine returns
     // empty when all modes fail gracefully, or it may contain FTS results.
     // We just verify no panic and if results are present they contain node1.
@@ -73,7 +70,10 @@ async fn test_search_text_returns_matching_nodes() {
     }
 
     // Search for "neural" -- should find node 3 if FTS runs
-    let results2 = engine.search_text("neural", 5).await.expect("search neural");
+    let results2 = engine
+        .search_text("neural", 5)
+        .await
+        .expect("search neural");
     if !results2.is_empty() {
         let found_id3 = results2.iter().any(|r| r.node.id == id3);
         assert!(found_id3, "neural search should include node 3");
@@ -127,5 +127,8 @@ async fn test_search_text_no_crash_without_api_key() {
 
     // Should not panic or return error
     let result = engine.search_text("alpha", 10).await;
-    assert!(result.is_ok(), "search_text should not error without API key");
+    assert!(
+        result.is_ok(),
+        "search_text should not error without API key"
+    );
 }

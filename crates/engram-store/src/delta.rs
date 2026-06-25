@@ -40,8 +40,8 @@ impl NodeDelta {
     }
 
     pub fn from_bytes(data: &[u8]) -> Result<Self> {
-        let decompressed = zstd::decode_all(data)
-            .map_err(|e| EngramError::Storage(e.to_string()))?;
+        let decompressed =
+            zstd::decode_all(data).map_err(|e| EngramError::Storage(e.to_string()))?;
         Ok(serde_json::from_slice(&decompressed)?)
     }
 }

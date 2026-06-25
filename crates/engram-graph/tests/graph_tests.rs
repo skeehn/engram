@@ -23,7 +23,11 @@ fn build_chain(store: &EngramStore) -> Vec<NodeId> {
     }
     // Create directed edges A->B->C->D->E
     for i in 0..4 {
-        let edge = Edge::new(nodes[i].id.clone(), nodes[i + 1].id.clone(), EdgeType::RelatedTo);
+        let edge = Edge::new(
+            nodes[i].id.clone(),
+            nodes[i + 1].id.clone(),
+            EdgeType::RelatedTo,
+        );
         store.put_edge(&edge).expect("put edge");
     }
     nodes.into_iter().map(|n| n.id).collect()
@@ -40,10 +44,7 @@ fn test_subgraph_depth_2_from_start() {
     let (nodes, _edges) = trav.subgraph(&ids[0], 2).expect("subgraph");
 
     let node_ids: Vec<&NodeId> = nodes.iter().map(|n| &n.id).collect();
-    assert!(
-        node_ids.contains(&&ids[0]),
-        "A should be in subgraph"
-    );
+    assert!(node_ids.contains(&&ids[0]), "A should be in subgraph");
     assert!(
         node_ids.contains(&&ids[1]),
         "B should be in subgraph at depth 1"
@@ -77,10 +78,7 @@ fn test_subgraph_depth_4_gets_all() {
     assert_eq!(nodes.len(), 5, "all 5 nodes should be in depth-4 subgraph");
     for (i, id) in ids.iter().enumerate() {
         let node_ids: Vec<&NodeId> = nodes.iter().map(|n| &n.id).collect();
-        assert!(
-            node_ids.contains(&id),
-            "node {i} should be present"
-        );
+        assert!(node_ids.contains(&id), "node {i} should be present");
     }
 }
 
@@ -124,10 +122,7 @@ fn test_subgraph_middle_node() {
         node_ids.contains(&&ids[1]),
         "B should be in C's depth-1 neighborhood"
     );
-    assert!(
-        node_ids.contains(&&ids[2]),
-        "C itself should be in result"
-    );
+    assert!(node_ids.contains(&&ids[2]), "C itself should be in result");
     assert!(
         node_ids.contains(&&ids[3]),
         "D should be in C's depth-1 neighborhood"
@@ -151,9 +146,9 @@ fn test_subgraph_includes_edges() {
 
     // Verify each edge connects consecutive nodes
     for i in 0..4 {
-        let has_edge = edges.iter().any(|e| {
-            e.source == ids[i] && e.target == ids[i + 1]
-        });
+        let has_edge = edges
+            .iter()
+            .any(|e| e.source == ids[i] && e.target == ids[i + 1]);
         assert!(
             has_edge,
             "edge from node_{i} to node_{} should be present",

@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use crate::rrf::rrf_fuse;
 use engram_core::{
     error::Result,
     id::NodeId,
@@ -9,7 +9,7 @@ use engram_fts::FtsIndex;
 use engram_graph::GraphTraversal;
 use engram_store::EngramStore;
 use engram_vector::VectorIndex;
-use crate::rrf::rrf_fuse;
+use std::sync::Arc;
 
 pub struct QueryEngine {
     pub store: Arc<EngramStore>,
@@ -25,7 +25,12 @@ impl QueryEngine {
         fts: Arc<FtsIndex>,
         vector: Arc<VectorIndex>,
     ) -> Self {
-        Self { store, embed, fts, vector }
+        Self {
+            store,
+            embed,
+            fts,
+            vector,
+        }
     }
 
     /// Execute a search query across all requested modes, fuse results with RRF.
@@ -35,34 +40,31 @@ impl QueryEngine {
         let candidate_k = top_k * 3;
 
         let mut rankings: Vec<Vec<String>> = Vec::new();
-        let mut score_map: std::collections::HashMap<String, f32> = std::collections::HashMap::new();
+        let mut score_map: std::collections::HashMap<String, f32> =
+            std::collections::HashMap::new();
 
         for mode in &query.modes {
             match mode {
-                SearchMode::Vector => {
-                    match self.embed.embed_query(text).await {
-                        Ok(embedding) => {
-                            match self.vector.search(&embedding, candidate_k) {
-                                Ok(results) => {
-                                    let ranked: Vec<String> = results
-                                        .iter()
-                                        .map(|(id, score)| {
-                                            score_map.insert(id.as_ref().to_string(), *score);
-                                            id.as_ref().to_string()
-                                        })
-                                        .collect();
-                                    rankings.push(ranked);
-                                }
-                                Err(e) => {
-                                    tracing::warn!("vector search error: {}", e);
-                                }
-                            }
+                SearchMode::Vector => match self.embed.embed_query(text).await {
+                    Ok(embedding) => match self.vector.search(&embedding, candidate_k) {
+                        Ok(results) => {
+                            let ranked: Vec<String> = results
+                                .iter()
+                                .map(|(id, score)| {
+                                    score_map.insert(id.as_ref().to_string(), *score);
+                                    id.as_ref().to_string()
+                                })
+                                .collect();
+                            rankings.push(ranked);
                         }
                         Err(e) => {
-                            tracing::warn!("embed query error (no API key?): {}", e);
+                            tracing::warn!("vector search error: {}", e);
                         }
+                    },
+                    Err(e) => {
+                        tracing::warn!("embed query error (no API key?): {}", e);
                     }
-                }
+                },
                 SearchMode::Keyword => {
                     // Escape special tantivy query characters so a plain text search doesn't fail
                     let safe_query = escape_fts_query(text);
@@ -71,9 +73,7 @@ impl QueryEngine {
                             let ranked: Vec<String> = results
                                 .iter()
                                 .map(|(id, score)| {
-                                    score_map
-                                        .entry(id.as_ref().to_string())
-                                        .or_insert(*score);
+                                    score_map.entry(id.as_ref().to_string()).or_insert(*score);
                                     id.as_ref().to_string()
                                 })
                                 .collect();
@@ -152,7 +152,9 @@ impl QueryEngine {
                         }
                     }
                     results.sort_by(|a, b| {
-                        b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal)
+                        b.score
+                            .partial_cmp(&a.score)
+                            .unwrap_or(std::cmp::Ordering::Equal)
                     });
                 }
                 Err(e) => {

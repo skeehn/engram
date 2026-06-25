@@ -22,7 +22,10 @@ fn test_put_get_delete_node() {
     store.put_node(&node).expect("put_node");
 
     // Get
-    let fetched = store.get_node(&id).expect("get_node").expect("should exist");
+    let fetched = store
+        .get_node(&id)
+        .expect("get_node")
+        .expect("should exist");
     assert_eq!(fetched.body, "hello world");
     assert_eq!(fetched.id, id);
 
@@ -72,7 +75,10 @@ fn test_kv_put_get_delete() {
 
     store.kv_put("mykey", b"myvalue").expect("kv_put");
 
-    let val = store.kv_get("mykey").expect("kv_get").expect("should exist");
+    let val = store
+        .kv_get("mykey")
+        .expect("kv_get")
+        .expect("should exist");
     assert_eq!(val, b"myvalue");
 
     store.kv_delete("mykey").expect("kv_delete");
@@ -91,7 +97,10 @@ fn test_object_put_get() {
     let oid2 = ObjectId::from_bytes(data);
     assert_eq!(oid.as_ref(), oid2.as_ref());
 
-    let fetched = store.object_get(&oid).expect("object_get").expect("should exist");
+    let fetched = store
+        .object_get(&oid)
+        .expect("object_get")
+        .expect("should exist");
     assert_eq!(fetched, data);
 
     // Different data produces different id
@@ -148,7 +157,9 @@ fn test_temporal_get_node_as_of() {
     store.put_node(&updated).expect("put updated");
 
     // get_node_as_of before update -- should return original (confidence 1.0) or None
-    let as_of = store.get_node_as_of(&node.id, before_update).expect("get_node_as_of");
+    let as_of = store
+        .get_node_as_of(&node.id, before_update)
+        .expect("get_node_as_of");
     match as_of {
         Some(n) => {
             // If temporal log was written before `before_update`, we get original
@@ -180,9 +191,13 @@ fn test_list_nodes() {
     let all = store.scan_nodes().expect("scan_nodes");
     assert_eq!(all.len(), 6);
 
-    let facts = store.list_nodes(Some(NodeType::Fact), 100).expect("list facts");
+    let facts = store
+        .list_nodes(Some(NodeType::Fact), 100)
+        .expect("list facts");
     assert_eq!(facts.len(), 5);
 
-    let concepts = store.list_nodes(Some(NodeType::Concept), 100).expect("list concepts");
+    let concepts = store
+        .list_nodes(Some(NodeType::Concept), 100)
+        .expect("list concepts");
     assert_eq!(concepts.len(), 1);
 }

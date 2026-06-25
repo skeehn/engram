@@ -1,4 +1,7 @@
-use engram_core::{id::NodeId, types::{Node, NodeType}};
+use engram_core::{
+    id::NodeId,
+    types::{Node, NodeType},
+};
 use engram_vector::VectorIndex;
 use tempfile::TempDir;
 
@@ -40,7 +43,10 @@ fn test_upsert_and_search() {
 
     assert!(!results.is_empty(), "should return results");
     let top_id = &results[0].0;
-    assert_eq!(top_id, &id1, "node1 should be top result (closest to query)");
+    assert_eq!(
+        top_id, &id1,
+        "node1 should be top result (closest to query)"
+    );
 
     // node5 is opposite direction -- should be last (or near-last)
     let last_id = &results[results.len() - 1].0;
@@ -57,11 +63,14 @@ fn test_cosine_similarity_ordering() {
     let id_opposite = make_id("opposite");
 
     // close: same direction as query
-    idx.upsert(&id_close, &[1.0, 1.0, 0.0, 0.0]).expect("upsert close");
+    idx.upsert(&id_close, &[1.0, 1.0, 0.0, 0.0])
+        .expect("upsert close");
     // far: orthogonal
-    idx.upsert(&id_far, &[0.0, 0.0, 1.0, 0.0]).expect("upsert far");
+    idx.upsert(&id_far, &[0.0, 0.0, 1.0, 0.0])
+        .expect("upsert far");
     // opposite: opposite direction
-    idx.upsert(&id_opposite, &[-1.0, -1.0, 0.0, 0.0]).expect("upsert opposite");
+    idx.upsert(&id_opposite, &[-1.0, -1.0, 0.0, 0.0])
+        .expect("upsert opposite");
 
     // Query in direction (1, 1, 0, 0)
     let query = [1.0_f32, 1.0, 0.0, 0.0];
@@ -70,9 +79,18 @@ fn test_cosine_similarity_ordering() {
     assert_eq!(results.len(), 3);
 
     // Verify ordering: close > far >= opposite (cosine similarity descending)
-    let score_close = results.iter().find(|(id, _)| id == &id_close).map(|(_, s)| *s);
-    let score_far = results.iter().find(|(id, _)| id == &id_far).map(|(_, s)| *s);
-    let score_opposite = results.iter().find(|(id, _)| id == &id_opposite).map(|(_, s)| *s);
+    let score_close = results
+        .iter()
+        .find(|(id, _)| id == &id_close)
+        .map(|(_, s)| *s);
+    let score_far = results
+        .iter()
+        .find(|(id, _)| id == &id_far)
+        .map(|(_, s)| *s);
+    let score_opposite = results
+        .iter()
+        .find(|(id, _)| id == &id_opposite)
+        .map(|(_, s)| *s);
 
     let sc = score_close.expect("close in results");
     let sf = score_far.expect("far in results");
@@ -80,8 +98,14 @@ fn test_cosine_similarity_ordering() {
 
     assert!(sc > sf, "close should score higher than orthogonal (far)");
     assert!(sf > so, "orthogonal should score higher than opposite");
-    assert!(so < 0.0, "opposite direction should have negative cosine similarity");
-    assert!((sc - 1.0).abs() < 1e-5, "identical direction should have cosine ~1.0");
+    assert!(
+        so < 0.0,
+        "opposite direction should have negative cosine similarity"
+    );
+    assert!(
+        (sc - 1.0).abs() < 1e-5,
+        "identical direction should have cosine ~1.0"
+    );
 }
 
 #[test]
@@ -91,18 +115,23 @@ fn test_upsert_replaces_existing() {
 
     let id = make_id("mynode");
 
-    idx.upsert(&id, &[1.0, 0.0, 0.0, 0.0]).expect("first upsert");
+    idx.upsert(&id, &[1.0, 0.0, 0.0, 0.0])
+        .expect("first upsert");
     assert_eq!(idx.len(), 1);
 
     // Upsert again with different vector
-    idx.upsert(&id, &[0.0, 1.0, 0.0, 0.0]).expect("second upsert");
+    idx.upsert(&id, &[0.0, 1.0, 0.0, 0.0])
+        .expect("second upsert");
     // Still only 1 entry
     assert_eq!(idx.len(), 1);
 
     // Search with (0, 1, 0, 0) query -- should return our node as top
     let results = idx.search(&[0.0, 1.0, 0.0, 0.0], 1).expect("search");
     assert_eq!(results[0].0, id);
-    assert!((results[0].1 - 1.0).abs() < 1e-5, "cosine ~1.0 after upsert");
+    assert!(
+        (results[0].1 - 1.0).abs() < 1e-5,
+        "cosine ~1.0 after upsert"
+    );
 }
 
 #[test]
@@ -113,15 +142,19 @@ fn test_remove_node() {
     let id1 = make_id("keep");
     let id2 = make_id("remove");
 
-    idx.upsert(&id1, &[1.0, 0.0, 0.0, 0.0]).expect("upsert keep");
-    idx.upsert(&id2, &[0.9, 0.1, 0.0, 0.0]).expect("upsert remove");
+    idx.upsert(&id1, &[1.0, 0.0, 0.0, 0.0])
+        .expect("upsert keep");
+    idx.upsert(&id2, &[0.9, 0.1, 0.0, 0.0])
+        .expect("upsert remove");
     assert_eq!(idx.len(), 2);
 
     idx.remove(&id2).expect("remove");
     assert_eq!(idx.len(), 1);
 
     // Search should only return the kept node
-    let results = idx.search(&[1.0, 0.0, 0.0, 0.0], 10).expect("search after remove");
+    let results = idx
+        .search(&[1.0, 0.0, 0.0, 0.0], 10)
+        .expect("search after remove");
     assert_eq!(results.len(), 1);
     assert_eq!(results[0].0, id1, "only id1 should remain");
 }
@@ -159,6 +192,8 @@ fn test_save_and_reload() {
     let idx2 = VectorIndex::new(DIM, &path).expect("reload");
     assert_eq!(idx2.len(), 2, "should reload 2 entries");
 
-    let results = idx2.search(&[1.0, 0.0, 0.0, 0.0], 2).expect("search after reload");
+    let results = idx2
+        .search(&[1.0, 0.0, 0.0, 0.0], 2)
+        .expect("search after reload");
     assert_eq!(results[0].0, id1, "id1 should be top after reload");
 }

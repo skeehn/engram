@@ -85,5 +85,4 @@ impl<'a> TemporalQuery<'a> {
             .collect();
         Ok(stale)
     }
-
 }

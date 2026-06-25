@@ -46,7 +46,8 @@ impl EngramStore {
     pub fn put_node(&self, node: &Node) -> Result<()> {
         let tree = self.tree(TREE_NODES)?;
         let value = serde_json::to_vec(node)?;
-        tree.insert(node.id.as_ref().as_bytes(), value).map_err(sled_err)?;
+        tree.insert(node.id.as_ref().as_bytes(), value)
+            .map_err(sled_err)?;
         let delta = NodeDelta::insert(node.clone());
         self.append_delta(&delta)?;
         Ok(())
@@ -109,8 +110,12 @@ impl EngramStore {
             edge.id.as_ref()
         );
         let value = serde_json::to_vec(edge)?;
-        fwd_tree.insert(fwd_key.as_bytes(), value.clone()).map_err(sled_err)?;
-        rev_tree.insert(rev_key.as_bytes(), value).map_err(sled_err)?;
+        fwd_tree
+            .insert(fwd_key.as_bytes(), value.clone())
+            .map_err(sled_err)?;
+        rev_tree
+            .insert(rev_key.as_bytes(), value)
+            .map_err(sled_err)?;
         Ok(())
     }
 
@@ -249,7 +254,10 @@ impl EngramStore {
 
     pub fn kv_get(&self, key: &str) -> Result<Option<Vec<u8>>> {
         let tree = self.tree(TREE_KV)?;
-        Ok(tree.get(key.as_bytes()).map_err(sled_err)?.map(|v| v.to_vec()))
+        Ok(tree
+            .get(key.as_bytes())
+            .map_err(sled_err)?
+            .map(|v| v.to_vec()))
     }
 
     pub fn kv_delete(&self, key: &str) -> Result<()> {
@@ -265,13 +273,17 @@ impl EngramStore {
     pub fn object_put(&self, data: &[u8]) -> Result<ObjectId> {
         let id = ObjectId::from_bytes(data);
         let tree = self.tree(TREE_OBJECTS)?;
-        tree.insert(id.as_ref().as_bytes(), data).map_err(sled_err)?;
+        tree.insert(id.as_ref().as_bytes(), data)
+            .map_err(sled_err)?;
         Ok(id)
     }
 
     pub fn object_get(&self, id: &ObjectId) -> Result<Option<Vec<u8>>> {
         let tree = self.tree(TREE_OBJECTS)?;
-        Ok(tree.get(id.as_ref().as_bytes()).map_err(sled_err)?.map(|v| v.to_vec()))
+        Ok(tree
+            .get(id.as_ref().as_bytes())
+            .map_err(sled_err)?
+            .map(|v| v.to_vec()))
     }
 
     // -----------------------------------------------------------------------
@@ -281,7 +293,8 @@ impl EngramStore {
     pub fn put_justification(&self, node_id: &NodeId, justification: &[NodeId]) -> Result<()> {
         let tree = self.tree(TREE_PROVENANCE)?;
         let value = serde_json::to_vec(justification)?;
-        tree.insert(node_id.as_ref().as_bytes(), value).map_err(sled_err)?;
+        tree.insert(node_id.as_ref().as_bytes(), value)
+            .map_err(sled_err)?;
         Ok(())
     }
 
@@ -300,7 +313,8 @@ impl EngramStore {
     pub fn put_cluster(&self, cluster: &ClusterInfo) -> Result<()> {
         let tree = self.tree(TREE_CLUSTERS)?;
         let value = serde_json::to_vec(cluster)?;
-        tree.insert(cluster.id.as_ref().as_bytes(), value).map_err(sled_err)?;
+        tree.insert(cluster.id.as_ref().as_bytes(), value)
+            .map_err(sled_err)?;
         Ok(())
     }
 

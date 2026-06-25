@@ -2,18 +2,17 @@
 
 ## Architecture
 
-11 Rust crates forming a knowledge database optimized for AI agents:
+10 Rust crates forming a knowledge database optimized for AI agents:
 - engram-core: Core types and traits
 - engram-store: Sled key-value storage (pure Rust, no rocksdb)
 - engram-graph: Graph operations and PPR
 - engram-fts: Tantivy full-text search
 - engram-vector: Flat cosine vector index (JSON storage)
 - engram-embed: Jina v3 1024-dim embedding client
-- engram-rerank: Jina reranker client (not yet wired)
 - engram-query: RRF fusion for hybrid search
 - engram-extract: Jina Reader for URL ingestion
 - engram-temporal: Temporal operations (not yet wired)
-- engram-cli: CLI binary
+- engram-cli: CLI binary + HTTP server (`engram serve`)
 
 ## Binary Location
 
@@ -60,10 +59,9 @@ Internal structure:
 
 ## Jina API Integration
 
-Required: JINA_API_KEY environment variable (NOT YET WIRED)
+Required: JINA_API_KEY environment variable (wired via `EmbedClient::from_env`)
 Models:
 - Embed: jina-embeddings-v3 (1024-dim)
-- Rerank: jina-reranker-v2-base-multilingual
 
 ## Code Standards
 
@@ -71,7 +69,7 @@ Models:
 - sled for storage (NOT rocksdb - rocksdb fills disk)
 - Error handling via anyhow + thiserror
 - Tests use workspace-level integration
-- All 11 crates compile clean with warnings only (unused mut)
+- All 10 crates compile clean
 
 ## Known Issues
 

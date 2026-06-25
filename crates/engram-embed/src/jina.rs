@@ -1,7 +1,7 @@
-use std::sync::Arc;
-use reqwest::Client;
-use engram_core::error::{EngramError, Result};
 use crate::types::*;
+use engram_core::error::{EngramError, Result};
+use reqwest::Client;
+use std::sync::Arc;
 
 pub struct JinaClient {
     client: Client,
@@ -82,9 +82,7 @@ impl JinaClient {
             .into_iter()
             .map(|r| (r.index, r.relevance_score))
             .collect();
-        results.sort_by(|a, b| {
-            b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal)
-        });
+        results.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
         Ok(results)
     }
 
@@ -116,29 +114,18 @@ impl JinaClient {
             .map_err(|e| EngramError::Http(e.to_string()))?;
         Ok(ReaderResponse {
             url: url.to_string(),
-            title: json["data"]["title"]
-                .as_str()
-                .unwrap_or("")
-                .to_string(),
-            content: json["data"]["content"]
-                .as_str()
-                .unwrap_or("")
-                .to_string(),
-            description: json["data"]["description"]
-                .as_str()
-                .map(|s| s.to_string()),
+            title: json["data"]["title"].as_str().unwrap_or("").to_string(),
+            content: json["data"]["content"].as_str().unwrap_or("").to_string(),
+            description: json["data"]["description"].as_str().map(|s| s.to_string()),
         })
     }
 
     fn api_key(&self) -> Result<String> {
-        self.config
-            .jina_api_key
-            .clone()
-            .ok_or_else(|| {
-                EngramError::Embedding(
-                    "JINA_API_KEY not set -- set env var or pass key in EmbedConfig".into(),
-                )
-            })
+        self.config.jina_api_key.clone().ok_or_else(|| {
+            EngramError::Embedding(
+                "JINA_API_KEY not set -- set env var or pass key in EmbedConfig".into(),
+            )
+        })
     }
 
     async fn post<Req: serde::Serialize, Resp: serde::de::DeserializeOwned>(

@@ -1,6 +1,9 @@
+use crate::{
+    jina::JinaClient,
+    types::{EmbedConfig, ReaderResponse},
+};
+use engram_core::{error::Result, types::Node};
 use std::sync::Arc;
-use engram_core::{types::Node, error::Result};
-use crate::{jina::JinaClient, types::{EmbedConfig, ReaderResponse}};
 
 pub struct EmbedClient {
     jina: Arc<JinaClient>,

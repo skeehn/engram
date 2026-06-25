@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
+use crate::id::{EdgeId, NodeId};
 use chrono::{DateTime, Utc};
-use crate::id::{NodeId, EdgeId};
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
 // ---------------------------------------------------------------------------

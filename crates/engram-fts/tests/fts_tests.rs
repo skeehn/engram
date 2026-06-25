@@ -53,7 +53,10 @@ fn test_search_returns_correct_node_id() {
     let found_a = results.iter().any(|(id, _)| id == &id_a);
     let found_b = results.iter().any(|(id, _)| id == &id_b);
     assert!(found_a, "node A should appear in results");
-    assert!(!found_b, "node B should not appear in results for 'machine'");
+    assert!(
+        !found_b,
+        "node B should not appear in results for 'machine'"
+    );
 
     // Search for "gardening" -- should return node B only
     let results2 = fts.search("gardening", 10).expect("search gardening");
@@ -74,7 +77,9 @@ fn test_remove_node_from_index() {
     commit_and_reload(&fts);
 
     // Verify it appears
-    let before = fts.search("cryptography", 10).expect("search before remove");
+    let before = fts
+        .search("cryptography", 10)
+        .expect("search before remove");
     assert!(
         before.iter().any(|(id, _)| id == &node_id),
         "should be present before removal"

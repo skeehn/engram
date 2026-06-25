@@ -1,10 +1,10 @@
-use std::collections::{HashSet, VecDeque};
 use engram_core::{
+    error::Result,
     id::NodeId,
     types::{Edge, Node},
-    error::Result,
 };
 use engram_store::EngramStore;
+use std::collections::{HashSet, VecDeque};
 
 pub struct GraphTraversal<'a> {
     store: &'a EngramStore,

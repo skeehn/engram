@@ -57,6 +57,8 @@ flume = "0.11"
 parking_lot = "0.12"
 # rayon
 rayon = "1"
+# http server
+axum = "0.7"
 # dashmap
 dashmap = "6"
 # ordered float

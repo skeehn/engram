@@ -1,11 +1,11 @@
-use std::path::{Path, PathBuf};
-use std::collections::HashMap;
-use parking_lot::RwLock;
-use serde::{Serialize, Deserialize};
 use engram_core::{
-    id::NodeId,
     error::{EngramError, Result},
+    id::NodeId,
 };
+use parking_lot::RwLock;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 
 /// Entry stored in the flat index.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -95,7 +95,10 @@ impl VectorIndex {
         // Compact if needed.
         let tombstones = entries.iter().filter(|e| e.embedding.is_empty()).count();
         if tombstones > entries.len() / 4 {
-            let live: Vec<Entry> = entries.drain(..).filter(|e| !e.embedding.is_empty()).collect();
+            let live: Vec<Entry> = entries
+                .drain(..)
+                .filter(|e| !e.embedding.is_empty())
+                .collect();
             *entries = live;
             id_map.clear();
             for (i, e) in entries.iter().enumerate() {
@@ -155,7 +158,11 @@ impl VectorIndex {
 
     /// Number of live (non-tombstoned) entries.
     pub fn len(&self) -> usize {
-        self.entries.read().iter().filter(|e| !e.embedding.is_empty()).count()
+        self.entries
+            .read()
+            .iter()
+            .filter(|e| !e.embedding.is_empty())
+            .count()
     }
 
     pub fn is_empty(&self) -> bool {

@@ -1,17 +1,17 @@
-use std::path::Path;
-use std::sync::Arc;
-use parking_lot::Mutex;
-use tantivy::{
-    schema::{Schema, Field, TEXT, STRING, STORED, FAST, Value},
-    Index, IndexReader, IndexWriter, ReloadPolicy, TantivyError,
-    query::QueryParser,
-    collector::TopDocs,
-    doc,
-};
 use engram_core::{
+    error::{EngramError, Result},
     id::NodeId,
     types::Node,
-    error::{EngramError, Result},
+};
+use parking_lot::Mutex;
+use std::path::Path;
+use std::sync::Arc;
+use tantivy::{
+    collector::TopDocs,
+    doc,
+    query::QueryParser,
+    schema::{Field, Schema, Value, FAST, STORED, STRING, TEXT},
+    Index, IndexReader, IndexWriter, ReloadPolicy, TantivyError,
 };
 
 pub struct FtsIndex {
@@ -70,7 +70,7 @@ impl FtsIndex {
     }
 
     pub fn index_node(&self, node: &Node) -> Result<()> {
-        let mut writer = self.writer.lock();
+        let writer = self.writer.lock();
         // Delete any existing doc for this node_id first
         let id_term = tantivy::Term::from_field_text(self.f_node_id, node.id.as_ref());
         writer.delete_term(id_term);
@@ -90,7 +90,7 @@ impl FtsIndex {
     }
 
     pub fn remove_node(&self, node_id: &NodeId) -> Result<()> {
-        let mut writer = self.writer.lock();
+        let writer = self.writer.lock();
         let id_term = tantivy::Term::from_field_text(self.f_node_id, node_id.as_ref());
         writer.delete_term(id_term);
         Ok(())
@@ -99,8 +99,7 @@ impl FtsIndex {
     pub fn search(&self, query: &str, limit: usize) -> Result<Vec<(NodeId, f32)>> {
         self.commit()?;
         let searcher = self.reader.searcher();
-        let query_parser =
-            QueryParser::for_index(&self.index, vec![self.f_body, self.f_tags]);
+        let query_parser = QueryParser::for_index(&self.index, vec![self.f_body, self.f_tags]);
         let parsed = query_parser
             .parse_query(query)
             .map_err(|e| EngramError::Query(e.to_string()))?;

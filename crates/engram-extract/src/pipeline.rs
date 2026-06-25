@@ -1,11 +1,11 @@
-use std::sync::Arc;
-use tokio::sync::mpsc;
 use engram_core::{
+    error::Result,
     id::NodeId,
     types::{Node, NodeType},
-    error::Result,
 };
 use engram_query::QueryEngine;
+use std::sync::Arc;
+use tokio::sync::mpsc;
 
 /// A raw write request (Lane 1 -- fast, synchronous)
 #[derive(Debug)]
@@ -39,7 +39,11 @@ impl ExtractPipeline {
         let id = node.id.clone();
         // Non-blocking send to background worker; if channel is full, log and skip
         if let Err(e) = self.tx.try_send(node) {
-            tracing::warn!("background queue full, skipping embedding for {}: {}", id, e);
+            tracing::warn!(
+                "background queue full, skipping embedding for {}: {}",
+                id,
+                e
+            );
         }
         Ok(id)
     }
