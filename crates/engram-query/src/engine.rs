@@ -218,6 +218,15 @@ impl QueryEngine {
         }
         Ok(())
     }
+
+    /// Pass-through accessors for HTTP stats handler
+    pub fn fts_doc_count(&self) -> Result<u64> {
+        self.fts.doc_count()
+    }
+
+    pub fn vector_len(&self) -> usize {
+        self.vector.len()
+    }
 }
 
 /// Escape special tantivy query syntax characters so a plain-text phrase search
