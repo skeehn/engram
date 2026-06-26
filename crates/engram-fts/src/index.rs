@@ -48,7 +48,7 @@ impl FtsIndex {
 
         let reader = index
             .reader_builder()
-            .reload_policy(ReloadPolicy::OnCommitWithDelay)
+            .reload_policy(ReloadPolicy::Manual)
             .try_into()
             .map_err(|e: TantivyError| EngramError::Index(e.to_string()))?;
 
@@ -139,6 +139,10 @@ impl FtsIndex {
         let mut writer = self.writer.lock();
         writer
             .commit()
+            .map_err(|e| EngramError::Index(e.to_string()))?;
+        drop(writer); // release lock before reload
+        self.reader
+            .reload()
             .map_err(|e| EngramError::Index(e.to_string()))?;
         Ok(())
     }
