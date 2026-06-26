@@ -58,7 +58,13 @@ impl EmbedClient {
         // We embed a summary/head of the text; the full body stays in storage.
         const MAX_EMBED_CHARS: usize = 6000;
         let text = if node.body.len() > MAX_EMBED_CHARS {
-            &node.body[..MAX_EMBED_CHARS]
+            // Snap down to a UTF-8 char boundary so multi-byte content
+            // (emoji, accents) never panics on slicing.
+            let mut end = MAX_EMBED_CHARS;
+            while end > 0 && !node.body.is_char_boundary(end) {
+                end -= 1;
+            }
+            &node.body[..end]
         } else {
             &node.body
         };

@@ -21,7 +21,7 @@
 ## Key Commands
 
 ```bash
-# Build (release mode only, debug has issues)
+# Build (release recommended; debug builds and tests also work)
 cargo build --release
 
 # Add knowledge node
@@ -73,11 +73,10 @@ Models:
 
 ## Known Issues
 
-1. JINA_API_KEY not yet wired - embeddings/rerank will fail without it
-2. Reranker client exists but not integrated into query engine
-3. Temporal crate exists but not wired into pipeline
-4. Vector index is flat (no HNSW/IVF) - will be slow at scale
-5. engram-unified crate (DualEdgeVamana, CompositeEmbedding) NOT in workspace yet
+1. Vector index is flat cosine (no HNSW/IVF) - fine to ~100k vectors, slower beyond.
+2. Graph/temporal modes are wired structurally but inert: no CLI path creates
+   edges yet, so `graph` shows 0 edges and Temporal/PPR search modes are TODO.
+3. engram-unified crate (DualEdgeVamana, CompositeEmbedding) is not in the workspace yet.
 
 ## molt Integration
 
@@ -94,4 +93,4 @@ Each crate has tests/ directory with integration tests. Run with:
 cargo test --release
 ```
 
-DO NOT run debug builds - sled has debug mode issues.
+Release is recommended for perf/benchmarking, but debug builds and `cargo test` work fine.
