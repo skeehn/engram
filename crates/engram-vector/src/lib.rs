@@ -11,4 +11,4 @@ pub mod hnsw;
 pub use index::VectorIndex;
 
 #[cfg(feature = "hnsw")]
-pub use hnsw::{HnswConfig, HnswIndex};
+pub use hnsw::{HnswConfig, HnswIndex, QuantizationType};

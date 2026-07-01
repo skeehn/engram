@@ -23,6 +23,40 @@ pub struct HnswConfig {
     pub expansion_add: usize,
     /// Expansion factor during search (higher = slower search, better recall)
     pub expansion_search: usize,
+    /// Quantization type: F32 (precise), I8 (4x smaller, <1% recall loss), B1 (32x smaller)
+    pub quantization: QuantizationType,
+}
+
+/// Quantization options for storage/speed tradeoffs.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Default)]
+pub enum QuantizationType {
+    /// Full precision (1536 bytes for 384d). Best recall, most memory.
+    #[default]
+    F32,
+    /// 8-bit scalar quantization (384 bytes for 384d). <1% recall loss, 4x smaller.
+    I8,
+    /// Binary quantization (48 bytes for 384d). 5-15% recall loss, 32x smaller.
+    /// Best for coarse filtering + rerank.
+    B1,
+}
+
+impl QuantizationType {
+    fn to_scalar_kind(self) -> ScalarKind {
+        match self {
+            QuantizationType::F32 => ScalarKind::F32,
+            QuantizationType::I8 => ScalarKind::I8,
+            QuantizationType::B1 => ScalarKind::B1,
+        }
+    }
+    
+    /// Bytes per vector for given dimensions.
+    pub fn bytes_per_vector(self, dims: usize) -> usize {
+        match self {
+            QuantizationType::F32 => dims * 4,
+            QuantizationType::I8 => dims,
+            QuantizationType::B1 => (dims + 7) / 8,
+        }
+    }
 }
 
 impl Default for HnswConfig {
@@ -31,6 +65,7 @@ impl Default for HnswConfig {
             connectivity: 16,        // M parameter - good balance
             expansion_add: 128,      // ef_construction - quality during build
             expansion_search: 64,    // ef_search - accuracy vs speed
+            quantization: QuantizationType::I8, // Default to i8 for 4x compression
         }
     }
 }
@@ -99,7 +134,7 @@ impl HnswIndex {
         let options = IndexOptions {
             dimensions,
             metric: MetricKind::Cos,  // Cosine similarity
-            quantization: ScalarKind::F32,
+            quantization: config.quantization.to_scalar_kind(),
             connectivity: config.connectivity,
             expansion_add: config.expansion_add,
             expansion_search: config.expansion_search,
