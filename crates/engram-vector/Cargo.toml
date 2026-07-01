@@ -4,9 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-default = ["hnsw"]
+default = ["hnsw", "kernel"]
 hnsw = ["usearch"]
 binary = ["memmap2"]
+kernel = ["memmap2"]
 flat = []
 
 [dependencies]

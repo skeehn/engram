@@ -12,6 +12,9 @@ pub mod simd;
 #[cfg(feature = "hnsw")]
 pub mod hnsw;
 
+#[cfg(feature = "kernel")]
+pub mod kernel;
+
 #[cfg(feature = "binary")]
 pub mod binary;
 
