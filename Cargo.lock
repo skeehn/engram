@@ -766,6 +766,7 @@ dependencies = [
  "engram-store",
  "engram-temporal",
  "engram-vector",
+ "engram-watch",
  "parking_lot 0.12.5",
  "serde",
  "serde_json",

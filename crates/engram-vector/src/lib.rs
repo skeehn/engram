@@ -3,8 +3,11 @@
 //! By default, uses HNSW (usearch) for O(log n) approximate nearest neighbor search.
 //! A flat O(n) index is available via the `flat` feature for small collections or testing.
 //! Binary quantization provides 32x compression with rescoring for high recall.
+//! SIMD-accelerated operations for maximum throughput.
+//! Hybrid index combines binary coarse search with HNSW refinement.
 
 pub mod index;
+pub mod simd;
 
 #[cfg(feature = "hnsw")]
 pub mod hnsw;
@@ -12,10 +15,17 @@ pub mod hnsw;
 #[cfg(feature = "binary")]
 pub mod binary;
 
+#[cfg(all(feature = "binary", feature = "hnsw"))]
+pub mod hybrid;
+
 pub use index::VectorIndex;
+pub use simd::{hamming_batch, hamming_distance, hamming_topk, AlignedVectorStore, SimdLevel};
 
 #[cfg(feature = "hnsw")]
 pub use hnsw::{HnswConfig, HnswIndex, QuantizationType};
 
 #[cfg(feature = "binary")]
 pub use binary::{BinaryIndex, BinaryIndexConfig, BinaryIndexStats, BinaryVector};
+
+#[cfg(all(feature = "binary", feature = "hnsw"))]
+pub use hybrid::{HybridConfig, HybridIndex, HybridStats};

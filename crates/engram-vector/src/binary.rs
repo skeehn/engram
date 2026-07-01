@@ -448,6 +448,6 @@ mod tests {
         
         // 1M vectors @ 48 bytes = 48MB
         let expected_mb = 1_000_000.0 * 48.0 / 1024.0 / 1024.0;
-        assert!((expected_mb - 45.78).abs() < 0.1);
+        assert!((expected_mb - 45.78f64).abs() < 0.1);
     }
 }

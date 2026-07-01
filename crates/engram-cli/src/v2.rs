@@ -95,16 +95,26 @@ impl EngramContext {
     
     /// Embed a single text using the configured embedder.
     pub async fn embed(&self, text: &str) -> Result<Vec<f32>> {
-        let mut embedder = self.embedder.lock();
-        let result = embedder.embed_one(text).await?;
-        Ok(result)
+        let embedder = self.embedder.clone();
+        let text = text.to_string();
+        tokio::task::spawn_blocking(move || {
+            let mut e = embedder.lock();
+            e.embed_local(&text).map_err(|e| anyhow::anyhow!("{}", e))
+        })
+        .await
+        .map_err(|e| anyhow::anyhow!("spawn_blocking failed: {}", e))?
     }
     
     /// Embed a query (may use query-specific prefixes).
     pub async fn embed_query(&self, query: &str) -> Result<Vec<f32>> {
-        let mut embedder = self.embedder.lock();
-        let result = embedder.embed_query(query).await?;
-        Ok(result)
+        let embedder = self.embedder.clone();
+        let query = query.to_string();
+        tokio::task::spawn_blocking(move || {
+            let mut e = embedder.lock();
+            e.embed_local(&query).map_err(|e| anyhow::anyhow!("{}", e))
+        })
+        .await
+        .map_err(|e| anyhow::anyhow!("spawn_blocking failed: {}", e))?
     }
     
     /// Add a text to the index.

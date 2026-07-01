@@ -99,6 +99,19 @@ enum Commands {
         #[arg(short, long, default_value = "7474")]
         port: u16,
     },
+    /// Start daemon (HTTP server + file watcher auto-indexing)
+    Daemon {
+        #[arg(short, long, default_value = "7474")]
+        port: u16,
+        /// Directories to watch for auto-indexing
+        #[arg(short, long)]
+        watch: Vec<PathBuf>,
+        /// Project namespace for indexed files
+        #[arg(long)]
+        project: Option<String>,
+    },
+    /// Start MCP server (JSON-RPC over stdin/stdout)
+    Mcp,
 }
 
 // ── HTTP server types ──────────────────────────────────────────────────────────
@@ -556,6 +569,25 @@ async fn main() -> Result<()> {
             let listener = tokio::net::TcpListener::bind(&addr).await?;
             println!("engram serving on http://{}", addr);
             axum::serve(listener, app).await?;
+        }
+        Commands::Daemon { port, watch, project } => {
+            use engram_cli::daemon::{run_daemon, DaemonConfig};
+            use engram_cli::v2::EngramContext;
+            let ctx = EngramContext::open(&cli.db)?;
+            let config = DaemonConfig {
+                port,
+                watch_dirs: watch,
+                project,
+                ..Default::default()
+            };
+            run_daemon(ctx, config).await?;
+        }
+        Commands::Mcp => {
+            use engram_cli::mcp::McpServer;
+            use engram_cli::v2::EngramContext;
+            let ctx = EngramContext::open_offline(&cli.db)?;
+            let server = McpServer::new(ctx);
+            server.run().await?;
         }
     }
 

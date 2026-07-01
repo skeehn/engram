@@ -206,7 +206,7 @@ impl HybridEmbedder {
     
     // --- Private helpers ---
     
-    fn embed_local(&mut self, text: &str) -> Result<Vec<f32>> {
+    pub fn embed_local(&mut self, text: &str) -> Result<Vec<f32>> {
         let local = self.ensure_local()?;
         local.embed_one(text)
     }

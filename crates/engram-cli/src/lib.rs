@@ -3,6 +3,8 @@
 /// without depending on each internal crate individually.
 
 pub mod v2;
+pub mod daemon;
+pub mod mcp;
 
 pub use engram_core::{
     error::{EngramError, Result},
