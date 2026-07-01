@@ -7,6 +7,10 @@ edition = "2021"
 name = "engram"
 path = "src/main.rs"
 
+[features]
+default = []
+binary = ["engram-vector/binary"]
+
 [dependencies]
 engram-core = { path = "../engram-core" }
 engram-store = { path = "../engram-store" }

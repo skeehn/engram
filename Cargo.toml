@@ -10,6 +10,7 @@ members = [
     "crates/engram-temporal",
     "crates/engram-query",
     "crates/engram-extract",
+    "crates/engram-watch",
     "crates/engram-cli",
 ]
 

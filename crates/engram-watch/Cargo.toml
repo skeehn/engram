@@ -1,0 +1,15 @@
+[package]
+name = "engram-watch"
+version = "0.1.0"
+edition = "2021"
+description = "Cross-platform file watcher for engram"
+
+[dependencies]
+notify = "8"
+walkdir = "2"
+sha2 = "0.10"
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3"

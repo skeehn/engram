@@ -6,6 +6,7 @@ edition = "2021"
 [features]
 default = ["hnsw"]
 hnsw = ["usearch"]
+binary = ["memmap2"]
 flat = []
 
 [dependencies]
@@ -18,6 +19,8 @@ tracing = { workspace = true }
 parking_lot = { workspace = true }
 # HNSW vector search
 usearch = { workspace = true, optional = true }
+# Memory mapping for binary index
+memmap2 = { version = "0.9", optional = true }
 
 [dev-dependencies]
 tempfile = "3"
