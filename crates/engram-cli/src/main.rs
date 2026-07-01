@@ -676,6 +676,21 @@ async fn run_local_mode(cli: &Cli) -> Result<()> {
             println!("FTS:     {} docs", stats.fts_docs);
             println!("Vectors: {} (HNSW, 384d)", stats.vectors);
         }
+        Commands::Daemon { port, watch, project } => {
+            use engram_cli::daemon::{run_daemon, DaemonConfig};
+            let config = DaemonConfig {
+                port: *port,
+                watch_dirs: watch.clone(),
+                project: project.clone(),
+                ..Default::default()
+            };
+            run_daemon(ctx, config).await?;
+        }
+        Commands::Mcp => {
+            use engram_cli::mcp::McpServer;
+            let server = McpServer::new(ctx);
+            server.run().await?;
+        }
         _ => {
             // For commands not yet implemented in v2, fall back
             println!("Command not yet implemented in local mode. Remove --local flag.");
