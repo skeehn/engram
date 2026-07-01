@@ -3,6 +3,11 @@ name = "engram-vector"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = ["hnsw"]
+hnsw = ["usearch"]
+flat = []
+
 [dependencies]
 engram-core = { path = "../engram-core" }
 serde = { workspace = true }
@@ -11,6 +16,8 @@ anyhow = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 parking_lot = { workspace = true }
+# HNSW vector search
+usearch = { workspace = true, optional = true }
 
 [dev-dependencies]
 tempfile = "3"

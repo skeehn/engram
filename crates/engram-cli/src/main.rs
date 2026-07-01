@@ -21,6 +21,10 @@ struct Cli {
     #[arg(short, long, default_value = ".engram")]
     db: PathBuf,
 
+    /// Use local embeddings + HNSW (v2 mode: offline, no API needed)
+    #[arg(long)]
+    local: bool,
+
     #[command(subcommand)]
     cmd: Commands,
 }
@@ -383,6 +387,12 @@ async fn main() -> Result<()> {
 
     let cli = Cli::parse();
 
+    // Branch: v2 mode uses local embeddings + HNSW
+    if cli.local {
+        return run_local_mode(&cli).await;
+    }
+
+    // Original v1 mode: API embeddings + flat vector index
     let store = Arc::new(engram_store::EngramStore::open(&cli.db)?);
     let fts_path = cli.db.join("fts");
     let fts = Arc::new(engram_fts::FtsIndex::open(&fts_path)?);
@@ -549,6 +559,97 @@ async fn main() -> Result<()> {
         }
     }
 
+    Ok(())
+}
+
+/// v2 mode: local embeddings + HNSW, no API needed
+async fn run_local_mode(cli: &Cli) -> Result<()> {
+    use engram_cli::v2::EngramContext;
+    use engram_core::types::Node;
+    
+    let ctx = EngramContext::open_offline(&cli.db)?;
+    println!("engram v2 (local mode) initialized");
+    
+    match &cli.cmd {
+        Commands::Add { body, node_type, tags, project } => {
+            let nt = parse_node_type(node_type);
+            let mut tag_list: Vec<String> = tags
+                .clone()
+                .unwrap_or_default()
+                .split(',')
+                .filter(|s| !s.is_empty())
+                .map(|s| s.trim().to_string())
+                .collect();
+            tag_list = inject_project(tag_list, project.as_deref());
+            
+            let node = Node::new(body.clone(), nt).with_tags(tag_list);
+            let id = node.id.clone();
+            
+            // Store node
+            ctx.store.put_node(&node)?;
+            
+            // Index in FTS
+            ctx.fts.index_node(&node)?;
+            ctx.fts.commit()?;
+            
+            // Embed and index in HNSW
+            let embedding = ctx.embed(&node.body).await?;
+            ctx.vector.upsert(&id, &embedding)?;
+            ctx.vector.save()?;
+            
+            println!("Added: {}", id);
+        }
+        Commands::Search { query, top_k, json, project } => {
+            let results = ctx.search(query, *top_k).await?;
+            
+            // Load full nodes and filter by project
+            let mut nodes: Vec<(engram_core::types::Node, f32)> = Vec::new();
+            for (id, score) in results {
+                let node_id = NodeId::from(id.as_str());
+                if let Ok(Some(node)) = ctx.store.get_node(&node_id) {
+                    if let Some(ref proj) = project {
+                        let tag = format!("project:{}", proj);
+                        if !node.tags.contains(&tag) {
+                            continue;
+                        }
+                    }
+                    nodes.push((node, score));
+                }
+            }
+            
+            if nodes.is_empty() {
+                println!("No results found.");
+            } else if *json {
+                let out: Vec<serde_json::Value> = nodes
+                    .iter()
+                    .map(|(n, score)| serde_json::json!({
+                        "id": n.id.as_ref(),
+                        "type": n.node_type.to_string(),
+                        "score": score,
+                        "body": truncate_str(&n.body, 200),
+                        "tags": n.tags,
+                    }))
+                    .collect();
+                println!("{}", serde_json::to_string_pretty(&out)?);
+            } else {
+                for (i, (n, score)) in nodes.iter().enumerate() {
+                    let preview = truncate_str(&n.body, 120);
+                    println!("[{}] {:.3} | {} | {}...", i + 1, score, n.id, preview);
+                }
+            }
+        }
+        Commands::Stats => {
+            let stats = ctx.stats();
+            println!("Nodes:   {}", stats.nodes);
+            println!("FTS:     {} docs", stats.fts_docs);
+            println!("Vectors: {} (HNSW, 384d)", stats.vectors);
+        }
+        _ => {
+            // For commands not yet implemented in v2, fall back
+            println!("Command not yet implemented in local mode. Remove --local flag.");
+        }
+    }
+    
     Ok(())
 }
 

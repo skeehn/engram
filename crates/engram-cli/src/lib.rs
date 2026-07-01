@@ -2,6 +2,8 @@
 /// so downstream crates and grain can use engram as a library
 /// without depending on each internal crate individually.
 
+pub mod v2;
+
 pub use engram_core::{
     error::{EngramError, Result},
     id::{ClusterId, EdgeId, NodeId, ObjectId},

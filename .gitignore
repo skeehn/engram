@@ -3,3 +3,6 @@ target/
 *.log
 .env
 .engram/
+/.fastembed_cache/
+/graphify-out/
+.fastembed_cache/
