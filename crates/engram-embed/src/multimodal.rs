@@ -3,7 +3,7 @@
 //! Uses fastembed for all modalities with specialized models:
 //! - Text: BGE Small EN v1.5 (384d) - general purpose
 //! - Code: Jina Code v2 (768d) - programming languages
-//! - Images: CLIP ViT-B/32 (512d) - visual content
+//! - Images: Nomic Embed Vision v1.5 (768d) - visual content
 //!
 //! Each modality has its own embedding space and index.
 
@@ -13,7 +13,7 @@ use parking_lot::RwLock;
 use tracing::{debug, info, warn};
 
 use engram_core::error::{EngramError, Result};
-use fastembed::{EmbeddingModel, TextEmbedding, InitOptions};
+use fastembed::{EmbeddingModel, TextEmbedding, InitOptions, ImageEmbedding, ImageEmbeddingModel, ImageInitOptions};
 
 /// Content types that engram can embed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -85,9 +85,9 @@ impl ContentType {
     /// Get embedding dimensions for this content type.
     pub fn dimensions(self) -> usize {
         match self {
-            ContentType::Text => 384,   // BGE Small EN
-            ContentType::Code => 768,   // Jina Code v2
-            ContentType::Image => 512,  // CLIP ViT-B/32
+            ContentType::Text => 384,  // BGE Small EN
+            ContentType::Code => 768,  // Jina Code v2
+            ContentType::Image => 768, // Nomic Embed Vision v1.5
         }
     }
 }
@@ -96,6 +96,7 @@ impl ContentType {
 pub struct MultimodalEmbedder {
     text_model: Arc<RwLock<Option<TextEmbedding>>>,
     code_model: Arc<RwLock<Option<TextEmbedding>>>,
+    image_model: Arc<RwLock<Option<ImageEmbedding>>>,
     cache_dir: Option<String>,
 }
 
@@ -106,6 +107,7 @@ impl MultimodalEmbedder {
         Self {
             text_model: Arc::new(RwLock::new(None)),
             code_model: Arc::new(RwLock::new(None)),
+            image_model: Arc::new(RwLock::new(None)),
             cache_dir: cache_dir.map(|p| p.as_ref().to_string_lossy().to_string()),
         }
     }
@@ -163,6 +165,48 @@ impl MultimodalEmbedder {
         
         debug!(count = code_chunks.len(), "Embedded code chunks");
         Ok(embeddings)
+    }
+    
+    /// Embed image files.
+    /// Uses Nomic Embed Vision v1.5 (768d) for visual understanding.
+    /// Input: list of file paths to images.
+    pub fn embed_images(&self, image_paths: &[impl AsRef<Path>]) -> Result<Vec<Vec<f32>>> {
+        let mut guard = self.image_model.write();
+        
+        if guard.is_none() {
+            info!("Loading image embedding model (Nomic Embed Vision v1.5)...");
+            let mut opts = ImageInitOptions::new(ImageEmbeddingModel::NomicEmbedVisionV15)
+                .with_show_download_progress(true);
+            
+            if let Some(ref dir) = self.cache_dir {
+                opts = opts.with_cache_dir(dir.clone().into());
+            }
+            
+            let model = ImageEmbedding::try_new(opts)
+                .map_err(|e| EngramError::Embedding(format!("failed to load image model: {e}")))?;
+            *guard = Some(model);
+            info!("Image model loaded (768d, Nomic Vision v1.5)");
+        }
+        
+        let model = guard.as_mut().unwrap();
+        
+        // Convert paths to PathBuf for fastembed
+        let paths: Vec<std::path::PathBuf> = image_paths
+            .iter()
+            .map(|p| p.as_ref().to_path_buf())
+            .collect();
+        
+        let embeddings = model.embed(paths, None)
+            .map_err(|e| EngramError::Embedding(format!("image embedding failed: {e}")))?;
+        
+        debug!(count = image_paths.len(), "Embedded images");
+        Ok(embeddings)
+    }
+    
+    /// Embed a single image file.
+    pub fn embed_image(&self, image_path: impl AsRef<Path>) -> Result<Vec<f32>> {
+        let embeddings = self.embed_images(&[image_path])?;
+        Ok(embeddings.into_iter().next().unwrap())
     }
     
     /// Embed content with automatic type detection.
@@ -230,7 +274,7 @@ impl MultimodalEmbedder {
         MultimodalStats {
             text_loaded: self.text_model.read().is_some(),
             code_loaded: self.code_model.read().is_some(),
-            image_loaded: false,
+            image_loaded: self.image_model.read().is_some(),
         }
     }
 }
@@ -265,6 +309,6 @@ mod tests {
     fn test_dimensions() {
         assert_eq!(ContentType::Text.dimensions(), 384);
         assert_eq!(ContentType::Code.dimensions(), 768);
-        assert_eq!(ContentType::Image.dimensions(), 512);
+        assert_eq!(ContentType::Image.dimensions(), 768);
     }
 }

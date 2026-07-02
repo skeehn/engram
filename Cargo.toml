@@ -11,14 +11,17 @@ members = [
     "crates/engram-query",
     "crates/engram-extract",
     "crates/engram-watch",
+    "crates/engram-workspace",
+    "crates/engram-mcp",
     "crates/engram-cli",
+    "crates/engram-bench",
 ]
 
 [workspace.dependencies]
 # async
 tokio = { version = "1", features = ["full"] }
 # local embeddings
-fastembed = { version = "5.17", default-features = false, features = ["ort-download-binaries-native-tls", "hf-hub-native-tls"] }
+fastembed = { version = "5.17", default-features = false, features = ["ort-download-binaries-native-tls", "hf-hub-native-tls", "image-models"] }
 # HNSW vector search
 usearch = "2.25"
 # serde

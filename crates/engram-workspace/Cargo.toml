@@ -1,0 +1,16 @@
+[package]
+name = "engram-workspace"
+version = "0.1.0"
+edition = "2021"
+description = "Multi-agent workspace isolation for engram"
+
+[dependencies]
+engram-core = { path = "../engram-core" }
+engram-store = { path = "../engram-store" }
+
+chrono = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+parking_lot = { workspace = true }
+uuid = { version = "1", features = ["v4"] }

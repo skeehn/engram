@@ -15,6 +15,14 @@ pub mod hnsw;
 #[cfg(feature = "kernel")]
 pub mod kernel;
 
+#[cfg(feature = "kernel")]
+pub mod kernel_index;
+
+#[cfg(feature = "kernel")]
+pub use kernel::{AlignedF32Store, BatchScanner, MmapVectors, SearchArena};
+#[cfg(feature = "kernel")]
+pub use kernel_index::{KernelConfig, KernelIndex, KernelIndexStats};
+
 #[cfg(feature = "binary")]
 pub mod binary;
 

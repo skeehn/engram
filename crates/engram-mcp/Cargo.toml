@@ -1,0 +1,32 @@
+[package]
+name = "engram-mcp"
+version = "0.1.0"
+edition = "2021"
+description = "MCP server for engram - expose memory to AI agents"
+
+[[bin]]
+name = "engram-mcp"
+path = "src/main.rs"
+
+[dependencies]
+engram-core = { path = "../engram-core" }
+engram-store = { path = "../engram-store" }
+engram-embed = { path = "../engram-embed" }
+engram-vector = { path = "../engram-vector" }
+engram-fts = { path = "../engram-fts" }
+engram-temporal = { path = "../engram-temporal" }
+engram-workspace = { path = "../engram-workspace" }
+
+# MCP protocol
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# async
+tokio = { workspace = true }
+
+# logging
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# CLI
+dirs = "5"

@@ -90,6 +90,17 @@ impl AlignedF32Store {
         unsafe { slice::from_raw_parts_mut(self.data.add(offset), self.dims) }
     }
 
+    /// Overwrite vector at index with new data.
+    #[inline]
+    pub fn overwrite(&mut self, index: usize, vector: &[f32]) {
+        debug_assert!(index < self.count, "index out of bounds");
+        debug_assert_eq!(vector.len(), self.dims);
+        let offset = index * self.dims;
+        unsafe {
+            ptr::copy_nonoverlapping(vector.as_ptr(), self.data.add(offset), self.dims);
+        }
+    }
+
     /// Prefetch vector at index for read (L1 cache).
     #[inline]
     pub fn prefetch(&self, index: usize) {
@@ -338,6 +349,19 @@ impl MmapVectors {
         self.count == 0
     }
 
+    /// Overwrite vector at index with new data.
+    pub fn overwrite(&mut self, index: usize, vector: &[f32]) -> std::io::Result<()> {
+        assert!(index < self.count, "index out of bounds");
+        assert_eq!(vector.len(), self.dims);
+        let vec_bytes = self.dims * std::mem::size_of::<f32>();
+        let offset = MMAP_HEADER_SIZE + index * vec_bytes;
+        let bytes = unsafe {
+            slice::from_raw_parts(vector.as_ptr() as *const u8, vec_bytes)
+        };
+        self.mmap[offset..offset + vec_bytes].copy_from_slice(bytes);
+        Ok(())
+    }
+
     /// Flush to disk.
     pub fn flush(&self) -> std::io::Result<()> {
         self.mmap.flush()
@@ -543,6 +567,12 @@ impl BatchScanner {
     /// Get tile size.
     pub fn tile_size(&self) -> usize {
         self.tile_size
+    }
+
+    /// Override tile size.
+    pub fn with_tile_size(mut self, tile_size: usize) -> Self {
+        self.tile_size = tile_size.max(4).min(1024);
+        self
     }
 }
 

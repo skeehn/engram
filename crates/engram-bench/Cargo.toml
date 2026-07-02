@@ -1,0 +1,33 @@
+[package]
+name = "engram-bench"
+version = "0.1.0"
+edition = "2021"
+description = "Benchmarks for engram - compare against Chroma, LangChain, mem0"
+
+[[bin]]
+name = "engram-bench"
+path = "src/main.rs"
+
+[dependencies]
+engram-core = { path = "../engram-core" }
+engram-store = { path = "../engram-store" }
+engram-embed = { path = "../engram-embed" }
+engram-fts = { path = "../engram-fts" }
+engram-vector = { path = "../engram-vector", features = ["kernel"] }
+engram-temporal = { path = "../engram-temporal" }
+
+# CLI & IO
+clap = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+
+# Benchmarking
+rand = "0.9"
+indicatif = "0.18"
+tempfile = "3"
+
+# Datasets
+reqwest = { workspace = true }
+flate2 = "1.1"
